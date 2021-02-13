@@ -1,3 +1,51 @@
+resource "aws_codebuild_project" "tf-plan" {
+  name          = "tf-cicd-plan"
+  description   = "Plan stage for terraform"
+  service_role  = aws_iam_role.tf-codebuild-role.arn
+
+  artifacts {
+    type = "CODEPIPELINE"
+  }
+
+  environment {
+    compute_type                = "BUILD_GENERAL1_SMALL"
+    image                       = "aws/codebuild/standard:1.0"
+    type                        = "LINUX_CONTAINER"
+    image_pull_credentials_type = "CODEBUILD"
+
+ }
+
+ 
+ source {
+     type   = "CODEPIPELINE"
+     buildspec = file("buildspec/plan-buildspec.yml")
+ }
+}
+
+resource "aws_codebuild_project" "tf-apply" {
+  name          = "tf-cicd-apply"
+  description   = "Apply stage for terraform"
+  service_role  = aws_iam_role.tf-codebuild-role.arn
+
+  artifacts {
+    type = "CODEPIPELINE"
+  }
+
+  environment {
+    compute_type                = "BUILD_GENERAL1_SMALL"
+    image                       = "aws/codebuild/standard:1.0"
+    type                        = "LINUX_CONTAINER"
+    image_pull_credentials_type = "CODEBUILD"
+    
+  
+ }
+ source {
+     type   = "CODEPIPELINE"
+     buildspec = file("buildspec/apply-buildspec.yml")
+ }
+}
+
+
 resource "aws_codepipeline" "cicd_pipeline" {
 
     name = "tf-cicd"
@@ -27,7 +75,7 @@ resource "aws_codepipeline" "cicd_pipeline" {
     }
 
     stage {
-        name ="Build"
+        name ="Plan"
         action{
             name = "Build"
             category = "Build"
